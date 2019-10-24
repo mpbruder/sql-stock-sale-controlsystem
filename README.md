@@ -3,7 +3,9 @@
 
 ## Descrição
    O objetivo do prjeto é desenvolver um sistema, utilizando SQL Server, que controle todo o estoque e a venda de uma loja de salgados. Para isso, foi necessário levantar requisitos, desenvolver a modelagem conceitual, modelagem lógica, modelagem física e, por fim, a manipulação da base de dados. 
+   
    Operações mínimas a serem implementadas:
+   
       a. Cadastro de Clientes;
       b. Cadastro de Fornecedores;
       c. Cadastro de Produtos;
