@@ -1,4 +1,5 @@
-# Projeto SQL Server - Sistema de controle de estoque e venda
+# Projeto SQL Server
+# Sistema de controle de estoque e venda
 
 
 ## Descrição
