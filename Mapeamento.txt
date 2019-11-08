@@ -1,0 +1,66 @@
+/* Entidades Livres */
+Promocao = {codpromo, dtinicio, dtfim}
+Insumo = {codinsumo, nome, dtfabricacao, dtvencimento}
+
+
+
+/* Generalizações */
+Pessoa = {codpessoa, nome, endereco, tipo}
+	tipo: 0 - Fornecedor, 1 - Pessoa Fisica
+Fornecedor = {codpessoa, CNPJ, razao_social}
+	codpessoa - chave estrangeira referenciando Pessoa
+Pessoa_fisica = {codpessoa, CPF, dtnascimento, telefone, email}
+	codpessoa - chave estrangeira referenciando Pessoa
+Colaborador = {codpessoa, CPF, login, senha, salario, comissao}
+	codpessoa - chave estrangeira referenciando Pessoa_fisica
+Cliente = {codpessoa, CPF}
+	codpessoa - chave estrangeira referenciando Pessoa_fisica
+
+Produto = {codproduto, nome, preco, qntestoque, dtfabricacao, dtvencimento, tipo}
+	tipo: 0 - Produto_fabricado, 1 - Produto_industrial
+Produto_fabricado = {codproduto}
+	codproduto = chave estrangeira referenciando produto
+Produto_industrial = {codproduto}
+	codproduto = chave estrangeira referenciando produto
+
+Fatura = {numfatura, numparcela, bandeira, forma_pgto, dtvencimento, dtpagamento, tipo}
+	tipo: 0 - Fatura_venda, 1 - Fatura_compraprod, 2 - Fatura_comprainsumo
+Fatura_venda = {numfatura, numnota}
+	numfatura - chave estrangeira referenciando Fatura
+	numnota - chave estrangeira referenciando NF_VENDA
+Fatura_compraprod = {numfatura, numnota_prod}
+	numfatura - chave estrangeira referenciando Fatura
+	numnota_prod - chave estrangeira referenciando NF_COMPRA_PROD
+Fatura_comprainsumo = {numfatura, numnota_insumo}
+	numfatura - chave estrangeira referenciando Fatura
+	numnota_insumo - chave estrangeira referenciando NF_COMPRA_INSUMO
+
+
+
+/* Agregações */
+NF_VENDA = {numnota, valortotal, data, cod_col, cod_cli}
+	cod_col - chave estrangeira referenciando Colaborador
+	cod_cli - chave estrangeira referenciando Cliente
+
+NF_COMPRA_INSUMO = {numnota_insumo, valortotal, data, codpessoa, codinsu45mo}
+	codpessoa - chave estrangeira referenciando Fornecedor
+	codinsumo - chave estrangeira referenciando Insumo
+
+NF_COMPRA_PROD = {numnota_prod, valortotal, data, codpessoa, codprod}
+	codpessoa - chave estrangeira referenciando Fornecedor
+	codprod - chave estrangeira referenciando Produto_industrial 
+
+
+
+/* Relacionamentos */
+itemnotafiscal = {numnota, codprod, quantidade}
+	numnota - chave estrangeira referenciando NF_VENDA
+	codprod - chave estrangeira referenciando Produto
+
+insumoproduto = {codprod, codinsumo, quantidade}
+	codprod - chave estrangeira referenciando Produto_fabricado
+	codinsumo - chave estrangeira referenciando Insumo
+
+prodpromocao = {codprod, codpromo, desconto}
+	codprod - chave estrangeira referenciando Produto_fabricado
+	codpromo - chave estrangeira referenciando Promocao
