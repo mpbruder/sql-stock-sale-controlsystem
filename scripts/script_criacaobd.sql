@@ -38,6 +38,7 @@ go
 create table Insumo (
 	codinsumo numeric(12,0) PRIMARY KEY,
 	nome varchar(50) not null,
+	qntestoque int not null,
 	dtfabricacao date not null,
 	dtvencimento date not null
 )
@@ -153,7 +154,7 @@ go
 create table NF_VENDA (
 	numnota numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
-	data date not null,
+	data datetime not null,
 	cod_col numeric(12,0) not null,
 	cod_cli numeric(12,0) not null
 )
@@ -180,7 +181,7 @@ go
 create table NF_COMPRA_INSUMO (
 	numnota_insumo numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
-	data date not null,
+	data datetime not null,
 	codpessoa numeric(12,0) not null,
 	codinsumo numeric(12,0) not null
 )
@@ -207,7 +208,7 @@ go
 create table NF_COMPRA_PROD (
 	numnota_prod numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
-	data date not null,
+	data datetime not null,
 	codpessoa numeric(12,0) not null,
 	codprod numeric(12,0) not null
 )
@@ -308,8 +309,9 @@ create table Fatura (
 	numparcela int not null,
 	bandeira varchar(20),
 	forma_pgto varchar(20),
-	dtvencimento date,
-	dtpagamento date not null,
+	valorfatura money,
+	dtvencimento date not null,
+	dtpagamento date,
 	tipo int not null
 )
 go
