@@ -29,14 +29,14 @@ go
 
 
 create table Promocao (
-	codpromo int PRIMARY KEY IDENTITY,
+	codpromo numeric(12,0) PRIMARY KEY,
 	dtinicio date not null,
 	dtfim date not null
 )
 go
 
 create table Insumo (
-	codinsumo int PRIMARY KEY IDENTITY,
+	codinsumo numeric(12,0) PRIMARY KEY,
 	nome varchar(50) not null,
 	dtfabricacao date not null,
 	dtvencimento date not null
@@ -48,7 +48,7 @@ go
 
 
 create table Pessoa (
-	codpessoa int PRIMARY KEY IDENTITY,
+	codpessoa numeric(12,0) PRIMARY KEY,
 	nome varchar(40) not null,
 	rua varchar(50) not null,
 	numero int not null,
@@ -58,7 +58,7 @@ create table Pessoa (
 go
 
 create table Fornecedor (
-	codpessoa int PRIMARY KEY,
+	codpessoa numeric(12,0) PRIMARY KEY,
 	cnpj int not null unique,
 	razao_social varchar(40) not null
 )
@@ -70,7 +70,7 @@ go
 	go
 
 create table Pessoa_Fisica (
-	codpessoa int PRIMARY KEY,
+	codpessoa numeric(12,0) PRIMARY KEY,
 	CPF int not null unique,
 	dtnascimento date not null,
 	telefone int,
@@ -84,7 +84,7 @@ go
 	go
 
 create table Colaborador (
-	codpessoa int PRIMARY KEY,
+	codpessoa numeric(12,0) PRIMARY KEY,
 	login varchar(30) not null,
 	senha varchar(50) not null,
 	salario money not null,
@@ -99,7 +99,7 @@ go
 	go
 
 create table Cliente (
-	codpessoa int PRIMARY KEY,
+	codpessoa numeric(12,0) PRIMARY KEY,
 	numero_compras int not null,
 	cliente_fidelidade char(1) not null,
 	cliente_premium char(1) not null,
@@ -116,7 +116,7 @@ go
 
 
 create table Produto (
-	codproduto int PRIMARY KEY IDENTITY,
+	codproduto numeric(12,0) PRIMARY KEY,
 	nome varchar(50) not null,
 	preco money not null,
 	qntestoque int not null,
@@ -127,7 +127,7 @@ create table Produto (
 go
 
 create table Produto_Fabricado (
-	codproduto int PRIMARY KEY
+	codproduto numeric(12,0) PRIMARY KEY
 )
 go
 
@@ -137,7 +137,7 @@ go
 	go
 
 create table Produto_Industrial (
-	codproduto int PRIMARY KEY
+	codproduto numeric(12,0) PRIMARY KEY
 )
 go
 
@@ -151,11 +151,11 @@ go
 
 
 create table NF_VENDA (
-	numnota int PRIMARY KEY IDENTITY,
+	numnota numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
 	data date not null,
-	cod_col int not null,
-	cod_cli int not null
+	cod_col numeric(12,0) not null,
+	cod_cli numeric(12,0) not null
 )
 go
 
@@ -178,11 +178,11 @@ go
 	go
 
 create table NF_COMPRA_INSUMO (
-	numnota_insumo int PRIMARY KEY IDENTITY,
+	numnota_insumo numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
 	data date not null,
-	codpessoa int not null,
-	codinsumo int not null
+	codpessoa numeric(12,0) not null,
+	codinsumo numeric(12,0) not null
 )
 go
 
@@ -205,11 +205,11 @@ go
 	go
 
 create table NF_COMPRA_PROD (
-	numnota_prod int PRIMARY KEY IDENTITY,
+	numnota_prod numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
 	data date not null,
-	codpessoa int not null,
-	codprod int not null
+	codpessoa numeric(12,0) not null,
+	codprod numeric(12,0) not null
 )
 go
 
@@ -236,8 +236,8 @@ go
 
 
 create table itemnotafiscal (
-	numnota int not null,
-	codprod int not null,
+	numnota numeric(12,0) not null,
+	codprod numeric(12,0) not null,
 	quantidade int not null
 )
 go
@@ -258,8 +258,8 @@ go
 	go
 
 create table insumoproduto (
-	codprod int not null,
-	codinsumo int not null,
+	codprod numeric(12,0) not null,
+	codinsumo numeric(12,0) not null,
 	quantidade int not null
 )
 go
@@ -279,8 +279,8 @@ go
 	go
 
 create table prodpromocao (
-	codprod int not null,
-	codpromo int not null,
+	codprod numeric(12,0) not null,
+	codpromo numeric(12,0) not null,
 	desconto int not null
 )
 go
@@ -304,7 +304,7 @@ go
 
 
 create table Fatura (
-	numfatura int PRIMARY KEY IDENTITY,
+	numfatura numeric(12,0) PRIMARY KEY,
 	numparcela int not null,
 	bandeira varchar(20),
 	forma_pgto varchar(20),
@@ -315,8 +315,8 @@ create table Fatura (
 go
 
 create table Fatura_Venda (
-	numfatura int PRIMARY KEY,
-	numnota int
+	numfatura numeric(12,0) PRIMARY KEY,
+	numnota numeric(12,0)
 )
 go
 
@@ -335,8 +335,8 @@ go
 	go
 
 create table Fatura_Compraprod (
-	numfatura int PRIMARY KEY,
-	numnota_prod int not null
+	numfatura numeric(12,0) PRIMARY KEY,
+	numnota_prod numeric(12,0) not null
 )
 go
 
@@ -355,8 +355,8 @@ go
 	go
 
 create table Fatura_Comprainsumo (
-	numfatura int PRIMARY KEY,
-	numnota_insumo int not null
+	numfatura numeric(12,0) PRIMARY KEY,
+	numnota_insumo numeric(12,0) not null
 )
 go
 
