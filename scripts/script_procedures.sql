@@ -183,37 +183,6 @@ begin transaction
 
 	
 
-
-/* Cadastro de Produto Industrial */
-create procedure cadastro_prod_industrial
-@codproduto numeric(12,0),
-@nome varchar(50),
-@preco money,
-@qntestoque int,
-@dtfabricacao date,
-@dtvencimento date
-as
-begin transaction
-	insert into Produto(codproduto, nome, preco, qntestoque, dtfabricacao, dtvencimento, tipo)
-	values(@codproduto, @nome, @preco, @qntestoque, @dtfabricacao, @dtvencimento, 1)
-	if @@ROWCOUNT > 0
-		begin
-			insert into Produto_Industrial(codproduto)
-			values(@codproduto)
-			if @@ROWCOUNT > 0
-			begin
-				commit transaction
-				return 1
-			end
-		end
-	else
-		begin
-			rollback transaction
-			return 0
-		end
-
-	
-
 /* Cadastro de Venda */
 create procedure venda
 @numnota numeric(12,0),
@@ -258,8 +227,6 @@ begin transaction
 			return 0
 		end
 
-	
-	
 
 /* Alterar status do cliente */
 create procedure alt_status_cliente
@@ -444,7 +411,34 @@ begin transaction
 			return 0
 		end
 
-	
+/* Cadastro produto insdustrial */
+create procedure cadastro_prod_industrial
+@codproduto numeric(12,0),
+@nome varchar(50),
+@preco money,
+@qntestoque int,
+@dtfabricacao date,
+@dtvencimento date
+as
+begin transaction
+	insert into Produto(codproduto, nome, preco, qntestoque, dtfabricacao, dtvencimento, tipo)
+	values(@codproduto, @nome, @preco, @qntestoque, @dtfabricacao, @dtvencimento, 1)
+	if @@ROWCOUNT > 0
+		begin
+			insert into Produto_Industrial(codproduto)
+			values(@codproduto)
+			if @@ROWCOUNT > 0
+			begin
+				commit transaction
+				return 1
+			end
+		end
+	else
+		begin
+			rollback transaction
+			return 0
+		end
+
 
 /* Compra produto */
 create procedure compra_produto_industrial
@@ -477,6 +471,9 @@ begin transaction
 			return 0
 		end
 
+
+
+
 /* Cadastrar promocao para produto */
 create procedure cadastrar_promoproduto
 @codpromo numeric(12,0),
@@ -502,11 +499,6 @@ begin transaction
 				return 0
 			end
 
-/* Verificar Promocao */
-create procedure verificar_promocao
-@codprod numeric(12,0)
-as
-begin transaction
 
 
 -- *********************************************************************************
@@ -550,7 +542,7 @@ begin transaction
 
 	-- EXECUCAO compra_produto_industrial
 	declare @ret int
-	exec @ret = compra_produto_industrial 2, 'Pepsi', 100, '2.5', '2019-07-03', '2019-09-03', 1, 1
+	exec @ret = compra_produto_industrial 1, 'Pepsi', 100, '2.5', '2019-07-03', '2019-09-03', 1, 2
 	print @ret
 
 	-- EXECUCAO fatura_compra_prod
@@ -565,7 +557,7 @@ begin transaction
 	
 	-- EXECUCAO venda = Criar NF
 	declare @ret int
-	exec @ret = venda 1, 1, 2, 2, 3
+	exec @ret = venda 1, 1, 10, 2, 3
 	print @ret
 
 	-- EXECUCAO finalizar_venda = Gerar Fatura com dtpagamento NULL
@@ -580,7 +572,10 @@ begin transaction
 
 
 		select * from produto
+		select * from promocao
 		select * from NF_VENDA
+		select * from NF_COMPRA_PROD
+		select * from NF_COMPRA_INSUMO
 
 		select * from Fatura
 		select * from Fatura_paga

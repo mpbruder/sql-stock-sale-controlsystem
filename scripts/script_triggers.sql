@@ -171,19 +171,27 @@
 	begin
 		delete from Fatura_Venda
 		where numfatura = (select numfatura from inserted)
+		if @@rowcount = 0
+			rollback transaction
 	end
 	if @var = 1
 	begin
 		delete from Fatura_Compraprod
 		where numfatura = (select numfatura from inserted)
+		if @@rowcount = 0
+			rollback transaction
 	end
 	if @var = 2
 	begin 
 		delete from Fatura_Comprainsumo
 		where numfatura = (select numfatura from inserted)
+		if @@rowcount = 0
+			rollback transaction
 	end
 	delete from Fatura
 	where numfatura = (select numfatura from inserted)
+	if @@rowcount = 0
+		rollback transaction
 
 
  -- drop trigger estoque_insumo
@@ -202,7 +210,7 @@
 	as
 	update Produto
 	set qntestoque = qntestoque + (select quantidade from inserted)
-	where codproduto = (select codproduto from inserted)
+	where codproduto = (select codproduto from inserted) and tipo = 1
 	if @@ROWCOUNT = 0
 		rollback transaction
 
@@ -236,3 +244,28 @@
 	where codinsumo = (select codinsumo from inserted)
 	if @@ROWCOUNT = 0
 		rollback transaction
+
+ -- drop trigger verificar_promocao
+	create trigger verificar_promocao
+	on NF_VENDA for update
+	as
+	if update(valortotal)
+	begin
+		declare @var int
+		set @var = DATEDIFF(day, GETDATE(), (select dtfim from Promocao 
+												where codpromo = (select codpromo from prodpromocao 
+																	where codprod = (select codprod from itemnotafiscal 
+																						where codprod = (select numnota from NF_VENDA 
+																											where numnota = (select numnota from inserted))))))
+		if @var < 0
+			begin
+				update Produto
+				set preco = preco + (select desconto from prodpromocao 
+										where codprod = (select codprod from itemnotafiscal
+															where numnota = (select numnota from inserted)))
+				where codproduto = (select codprod from itemnotafiscal
+										where numnota = (select numnota from inserted))
+				if @@ROWCOUNT = 0
+					rollback transaction
+			end
+		end
