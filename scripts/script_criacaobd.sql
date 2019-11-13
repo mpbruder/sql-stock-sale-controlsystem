@@ -321,7 +321,7 @@ go
 
 create table Fatura_Venda (
 	numfatura numeric(12,0) PRIMARY KEY,
-	numnota numeric(12,0)
+	numnota numeric(12,0) not null
 )
 go
 

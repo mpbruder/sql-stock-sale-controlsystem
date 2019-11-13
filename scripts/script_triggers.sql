@@ -179,3 +179,34 @@
 	where codproduto = (select codproduto from inserted)
 	if @@ROWCOUNT = 0
 		rollback transaction
+
+
+ -- drop trigger gatilho_promocao
+	create trigger gatilho_promocao
+	on prodpromocao for insert
+	as
+	declare @var int
+	set @var = DATEDIFF(day, GETDATE(), (select dtfim from Promocao where codpromo = (select codpromo from inserted)))
+	if @var > 0 
+		begin
+			update Produto
+			set preco = preco - (select desconto from inserted)
+			where codproduto = (select codprod from inserted)
+		end
+	else
+		begin
+			update Produto
+			set preco = preco + (select desconto from inserted)
+			where codproduto = (select codprod from inserted)
+		end
+
+
+ -- drop trigger baixa_estoque_insumo
+	create trigger baixa_estoque_insumo
+	on insumoproduto for insert
+	as
+	update Insumo
+	set qntestoque = qntestoque - (select quantidade from inserted)
+	where codinsumo = (select codinsumo from inserted)
+	if @@ROWCOUNT = 0
+		rollback transaction
