@@ -103,7 +103,7 @@ create table Cliente (
 	codpessoa numeric(12,0) PRIMARY KEY,
 	numero_compras int not null,
 	cliente_fidelidade char(1) not null,
-	cliente_premium char(1) not null,
+	cliente_premium char(1) not null
 )
 go
 
@@ -155,6 +155,7 @@ create table NF_VENDA (
 	numnota numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
 	data datetime not null,
+	status char(1),
 	cod_col numeric(12,0) not null,
 	cod_cli numeric(12,0) not null
 )
@@ -182,6 +183,7 @@ create table NF_COMPRA_INSUMO (
 	numnota_insumo numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
 	data datetime not null,
+	quantidade int not null,
 	codpessoa numeric(12,0) not null,
 	codinsumo numeric(12,0) not null
 )
@@ -209,6 +211,7 @@ create table NF_COMPRA_PROD (
 	numnota_prod numeric(12,0) PRIMARY KEY,
 	valortotal money not null,
 	data datetime not null,
+	quantidade int not null,
 	codpessoa numeric(12,0) not null,
 	codprod numeric(12,0) not null
 )
@@ -306,9 +309,6 @@ go
 
 create table Fatura (
 	numfatura numeric(12,0) PRIMARY KEY,
-	numparcela int not null,
-	bandeira varchar(20),
-	forma_pgto varchar(20),
 	valorfatura money,
 	dtvencimento date not null,
 	dtpagamento date,
@@ -375,3 +375,14 @@ go
 	create index ixfatura_comprainsumo_numnotains
 	on Fatura_Comprainsumo(numnota_insumo)
 	go
+
+
+create table Fatura_paga (
+	numfatura numeric(12,0) PRIMARY KEY,
+	forma_pgto varchar(20),
+	valorfatura money,
+	dtvencimento date not null,
+	dtpagamento date,
+	tipo int not null
+)
+go

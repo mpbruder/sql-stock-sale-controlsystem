@@ -216,10 +216,10 @@
 	@codcolaborador numeric(12,0)
 	as
 	begin transaction
-		if not exists (select * from NF_VENDA where numnota = @numnota)
+		if not exists (select * from NF_VENDA where numnota = @numnota and status = 1)
 		begin
-			insert into NF_VENDA(numnota, valortotal, data, cod_col, cod_cli)
-			values(@numnota, 0, GETDATE(), @codcolaborador, @codcliente)
+			insert into NF_VENDA(numnota, valortotal, data, status, cod_col, cod_cli)
+			values(@numnota, 0, GETDATE(), 1, @codcolaborador, @codcliente)
 		end
 		insert into itemnotafiscal(numnota, codprod, quantidade)
 		values(@numnota, @codprod, @quantidade)
@@ -252,7 +252,7 @@
 			end
 
 	
-
+	
 
 	/* Alterar status do cliente */
 	create procedure alt_status_cliente
@@ -282,7 +282,89 @@
 				return 0
 			end
 
-		
+
+
+		/* Finalizar Venda */
+		create procedure finalizar_venda
+		@numnota numeric(12,0),
+		@numfatura numeric(12,0),
+		@valorfatura money
+		as
+		begin transaction
+			insert into Fatura
+			values(@numfatura, (select valortotal from NF_VENDA where numnota = @numnota), DATEADD(month, 1, (select data from NF_VENDA where numnota = @numnota)), null, 0)
+			if @@ROWCOUNT > 0
+				begin
+					insert into Fatura_venda
+					values(@numfatura, @numnota)
+					if @@ROWCOUNT > 0
+						begin
+							commit transaction
+							return 1
+						end
+					else
+						begin
+							rollback transaction
+							return 0
+						end
+				end
+			else
+				begin
+					rollback transaction
+					return 0
+				end
+			
+
+
+
+
+		/* Realizar pagamento */
+		create procedure realizar_pagamento
+		@numfatura numeric(12,0),
+		@forma_pgto varchar(20)
+		as
+		begin transaction
+			update Fatura
+			set dtpagamento = (select convert (date ,getdate()))
+			where numfatura = @numfatura
+			if @@ROWCOUNT > 0
+				begin
+					update Fatura_paga
+					set forma_pgto = @forma_pgto
+					where numfatura = @numfatura
+					if @@ROWCOUNT > 0
+						begin
+							commit transaction
+							return 1
+						end
+					else
+						begin
+							rollback transaction
+							return 0
+						end	
+				end
+				else
+					begin
+						rollback transaction
+						return 0
+					end	 
+
+		/* Compra insumo */
+		create procedure compra_insumo
+		@numnota_prod numeric(12,0),
+		@quantiade int,
+		@codpessoa numeric(12,0),
+		@codinsumo numeric(12,0)
+		as
+		begin
+		insert into NF_COMPRA_INSUMO(numnota_prod, valortotal, data, quantidade, codpessoa, codinsumo)
+		values(@numnota_prod)
+		if @@ROWCOUNT > 0
+			begin
+			end
+
+		/* Compra produto */
+
 
 -- *********************************************************************************
 -- SCRIPT: Manipulacao Database - EXEC's
@@ -305,27 +387,42 @@
 
 	-- EXECUCAO cadastro_prod_fabricado
 	declare @ret int
-	exec @ret = cadastro_prod_fabricado 26, 'Coxinha de frango', '2.5', 500, '2019-11-12'
+	exec @ret = cadastro_prod_fabricado 1, 'Coxinha de frango', '2.5', 500, '2019-11-12'
 	print @ret
 
 	-- EXECUCAO cadastro_prod_industrial
 	declare @ret int
-	exec @ret = cadastro_prod_industrial 27, 'Coca-cola', '3.5', 50, '2019-10-12', '2020-02-01'
+	exec @ret = cadastro_prod_industrial 2, 'Coca-cola', '3.5', 50, '2019-10-12', '2020-02-01'
 	print @ret
 
 	-- EXECUCAO venda
 	declare @ret int
-	exec @ret = venda 1, 1, 1, 120, 30
+	exec @ret = venda 1, 1, 1, 2, 3
 	print @ret
 
 	-- EXECUCAO alt_status_cliente
 	declare @ret int
-	exec @ret = alt_status_cliente 'Duncan Vargas', 'S', 'S'
+	exec @ret = alt_status_cliente 'Matheus Bruder', 'S', 'S'
+	print @ret
+
+	-- EXECUCAO finalizar_venda
+	declare @ret int
+	exec @ret = finalizar_venda 1, 1, '2.5'
+	print @ret
+
+	-- EXECUCAO realizar_pagamento
+	declare @ret int
+	exec @ret = realizar_pagamento 1, 'Crédito'
 	print @ret
 
 
+
+
+
 		select * from NF_VENDA
-		select * from itemnotafiscal
+		select * from Fatura
+		select * from Fatura_paga
+		select * from Fatura_Venda
 		
 		select * from Pessoa
 		select * from Pessoa_Fisica

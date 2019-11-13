@@ -99,3 +99,47 @@
 				rollback transaction
 		end
 	end
+
+
+ -- drop trigger finalizar_NF_venda
+	create trigger finalizar_NF_venda
+	on Fatura_Venda for insert
+	as
+	begin
+		update NF_VENDA
+		set status = 0
+		where numnota = (select numnota from inserted)
+		if @@ROWCOUNT = 0
+			rollback transaction
+	end
+
+
+ -- drop trigger pagamentofatura
+	create trigger pagamentofatura
+	on Fatura for update
+	as
+	if update(dtpagamento)
+	begin
+		declare @dtpag date
+		set @dtpag = (select dtpagamento from inserted)
+		if (@dtpag is null)
+			rollback transaction
+		else
+			declare @var int
+			set @var = (select  DATEDIFF(day, (select dtpagamento from inserted), (select dtvencimento from inserted)))
+			if (@var < 0)
+				rollback transaction
+			else
+				insert into Fatura_paga(numfatura, valorfatura, dtvencimento, dtpagamento, tipo)
+				values((select numfatura from deleted),(select valorfatura from inserted),(select dtvencimento from inserted),(select dtpagamento from inserted),(select tipo from inserted))
+				if @@rowcount = 0
+					rollback transaction
+				else
+					delete from Fatura_Venda
+					where numfatura = (select numfatura from inserted)
+					if @@rowcount = 0
+						rollback transaction
+					else
+						delete from Fatura
+						where numfatura = (select numfatura from inserted)
+	end
