@@ -39,6 +39,7 @@ create table Insumo (
 	codinsumo numeric(12,0) PRIMARY KEY,
 	nome varchar(50) not null,
 	qntestoque int not null,
+	preco money,
 	dtfabricacao date not null,
 	dtvencimento date not null
 )
@@ -184,6 +185,7 @@ create table NF_COMPRA_INSUMO (
 	valortotal money not null,
 	data datetime not null,
 	quantidade int not null,
+	status char(1),
 	codpessoa numeric(12,0) not null,
 	codinsumo numeric(12,0) not null
 )
@@ -212,6 +214,7 @@ create table NF_COMPRA_PROD (
 	valortotal money not null,
 	data datetime not null,
 	quantidade int not null,
+	status char(1),
 	codpessoa numeric(12,0) not null,
 	codprod numeric(12,0) not null
 )

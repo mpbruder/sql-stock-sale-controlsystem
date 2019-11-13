@@ -191,7 +191,7 @@
 		values(@codproduto, @nome, @preco, @qntestoque, @dtfabricacao, @dtvencimento, 1)
 		if @@ROWCOUNT > 0
 			begin
-				insert into Produto_Fabricado(codproduto)
+				insert into Produto_Industrial(codproduto)
 				values(@codproduto)
 				if @@ROWCOUNT > 0
 				begin
@@ -287,8 +287,7 @@
 		/* Finalizar Venda */
 		create procedure finalizar_venda
 		@numnota numeric(12,0),
-		@numfatura numeric(12,0),
-		@valorfatura money
+		@numfatura numeric(12,0)
 		as
 		begin transaction
 			insert into Fatura
@@ -314,8 +313,76 @@
 					return 0
 				end
 			
+		/* Gerar Fatura Produto comprado */
+		create procedure fatura_compra_prod
+		@numnota_prod numeric(12,0),
+		@numfatura numeric(12,0)
+		as
+		begin transaction
+		insert into Fatura
+		values(@numfatura, (select valortotal from NF_COMPRA_PROD where numnota_prod = @numnota_prod), DATEADD(month, 1, (select data from NF_COMPRA_PROD where numnota_prod = @numnota_prod)), null, 1)
+		if @@ROWCOUNT > 0
+			begin
+				insert into Fatura_Compraprod
+				values(@numfatura, @numnota_prod)
+				if @@ROWCOUNT > 0
+					begin
+						commit transaction
+						return 1
+					end
+				else
+					begin
+						rollback transaction
+						return 0
+					end
+			end
+		else
+			begin
+				rollback transaction
+				return 0
+			end
 
+	-- EXECUCAO fatura_compra_prod
+	declare @ret int
+	exec @ret = fatura_compra_prod 1, 2
+	print @ret
 
+		/* Gerar Fatura Insumo comprado */
+		create procedure fatura_compra_insumo
+		@numnota_insumo numeric(12,0),
+		@numfatura numeric(12,0)
+		as
+		begin transaction
+		insert into Fatura
+		values(@numfatura, (select valortotal from NF_COMPRA_INSUMO where numnota_insumo = @numnota_insumo), DATEADD(month, 1, (select data from NF_COMPRA_INSUMO where numnota_insumo = @numnota_insumo)), null, 2)
+		if @@ROWCOUNT > 0
+			begin
+				insert into Fatura_Comprainsumo
+				values(@numfatura, @numnota_insumo)
+				if @@ROWCOUNT > 0
+					begin
+						commit transaction
+						return 1
+					end
+				else
+					begin
+						rollback transaction
+						return 0
+					end
+			end
+		else
+			begin
+				rollback transaction
+				return 0
+			end
+
+	-- EXECUCAO fatura_compra_insumo
+	declare @ret int
+	exec @ret = fatura_compra_insumo 1, 3   
+	print @ret
+
+	select * from NF_COMPRA_INSUMO
+	select * from Fatura
 
 
 		/* Realizar pagamento */
@@ -325,7 +392,7 @@
 		as
 		begin transaction
 			update Fatura
-			set dtpagamento = (select convert (date ,getdate()))
+			set dtpagamento = (select convert (date, getdate()))
 			where numfatura = @numfatura
 			if @@ROWCOUNT > 0
 				begin
@@ -351,19 +418,67 @@
 
 		/* Compra insumo */
 		create procedure compra_insumo
-		@numnota_prod numeric(12,0),
-		@quantiade int,
-		@codpessoa numeric(12,0),
+		@numnota_insumo numeric(12,0),
+		@nome varchar(50),
+		@quantidade int,
+		@preco money,
+		@dtfabricacao date,
+		@dtvencimento date,
+		@codfornecedor numeric(12,0),
 		@codinsumo numeric(12,0)
 		as
-		begin
-		insert into NF_COMPRA_INSUMO(numnota_prod, valortotal, data, quantidade, codpessoa, codinsumo)
-		values(@numnota_prod)
-		if @@ROWCOUNT > 0
+		begin transaction
+			if not exists (select * from Insumo where codinsumo = @codinsumo)
 			begin
+				insert into Insumo
+				values(@codinsumo, @nome, 0, @preco, @dtfabricacao, @dtvencimento)
 			end
+			insert into NF_COMPRA_INSUMO(numnota_insumo, valortotal, data, quantidade, status, codpessoa, codinsumo)
+			values(@numnota_insumo, (@quantidade * (select preco from Insumo where codinsumo = @codinsumo)), GETDATE(), @quantidade, 1, @codfornecedor, @codinsumo)
+			if @@ROWCOUNT > 0
+				begin
+					commit transaction
+					return 1
+				end
+			else 
+				begin
+					rollback transaction
+					return 0
+				end
+
+	
 
 		/* Compra produto */
+		create procedure compra_produto_industrial
+		@numnota_prod numeric(12,0),
+		@nome varchar(50),
+		@quantidade int,
+		@preco money,
+		@dtfabricacao date,
+		@dtvencimento date,
+		@codfornecedor numeric(12,0),
+		@codproduto numeric(12,0)
+		as
+		begin transaction
+			if not exists (select * from Produto where codproduto = @codproduto)
+			begin
+				declare @var int
+				exec @var = cadastro_prod_industrial @codproduto, @nome, @preco, 0, @dtfabricacao, @dtvencimento
+				print @var
+			end
+			insert into NF_COMPRA_PROD(numnota_prod, valortotal, data, quantidade, status, codpessoa, codprod)
+			values(@numnota_prod, (@quantidade * (select preco from Produto where codproduto = @codproduto)), GETDATE(), @quantidade, 1, @codfornecedor, @codproduto)
+			if @@ROWCOUNT > 0
+				begin
+					commit transaction
+					return 1
+				end
+			else 
+				begin
+					rollback transaction
+					return 0
+				end
+
 
 
 -- *********************************************************************************
@@ -385,16 +500,21 @@
 	exec @ret = cadastro_colaborador 3, 'Joao da Silva', 'R. Mar', 46, 945651, 161516, '2000-05-24', 997004045, 'm@bol.com', 'joao', '123', '2000'
 	print @ret
 
+	-- EXECUCAO compra_insumo
+	declare @ret int
+	exec @ret = compra_insumo 3, 'Farinha de Trigo', 2, '10.00', '2019-10-29', '2020-03-29', 1, 1
+	print @ret
+
 	-- EXECUCAO cadastro_prod_fabricado
 	declare @ret int
 	exec @ret = cadastro_prod_fabricado 1, 'Coxinha de frango', '2.5', 500, '2019-11-12'
 	print @ret
 
-	-- EXECUCAO cadastro_prod_industrial
+	-- EXECUCAO compra_produto_industrial
 	declare @ret int
-	exec @ret = cadastro_prod_industrial 2, 'Coca-cola', '3.5', 50, '2019-10-12', '2020-02-01'
+	exec @ret = compra_produto_industrial 1, 'Pepsi', 100, '2.5', '2019-07-03', '2019-09-03', 1, 3
 	print @ret
-
+	
 	-- EXECUCAO venda
 	declare @ret int
 	exec @ret = venda 1, 1, 1, 2, 3
@@ -412,7 +532,7 @@
 
 	-- EXECUCAO realizar_pagamento
 	declare @ret int
-	exec @ret = realizar_pagamento 1, 'Crédito'
+	exec @ret = realizar_pagamento 2, 'Dinheiro Vivo'
 	print @ret
 
 

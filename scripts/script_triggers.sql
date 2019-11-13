@@ -113,6 +113,30 @@
 			rollback transaction
 	end
 
+ -- drop trigger finalizar_NF_compra_prod
+	create trigger finalizar_NF_compra_prod
+	on Fatura_Compraprod for insert
+	as
+	begin
+		update NF_COMPRA_PROD
+		set status = 0
+		where numnota_prod = (select numnota_prod from inserted)
+		if @@ROWCOUNT = 0
+			rollback transaction
+	end
+
+ -- drop trigger finalizar_NF_compra_insumo
+	create trigger finalizar_NF_compra_insumo
+	on Fatura_Comprainsumo for insert
+	as
+	begin
+		update NF_COMPRA_INSUMO
+		set status = 0
+		where numnota_insumo = (select numnota_insumo from inserted)
+		if @@ROWCOUNT = 0
+			rollback transaction
+	end
+
 
  -- drop trigger pagamentofatura
 	create trigger pagamentofatura
@@ -134,12 +158,24 @@
 				values((select numfatura from deleted),(select valorfatura from inserted),(select dtvencimento from inserted),(select dtpagamento from inserted),(select tipo from inserted))
 				if @@rowcount = 0
 					rollback transaction
-				else
-					delete from Fatura_Venda
-					where numfatura = (select numfatura from inserted)
-					if @@rowcount = 0
-						rollback transaction
-					else
-						delete from Fatura
-						where numfatura = (select numfatura from inserted)
 	end
+
+ -- drop trigger estoque_insumo
+	create trigger estoque_insumo
+	on NF_COMPRA_INSUMO for insert
+	as
+	update Insumo
+	set qntestoque = qntestoque + (select quantidade from inserted)
+	where codinsumo = (select codinsumo from inserted)
+	if @@ROWCOUNT = 0
+		rollback transaction
+
+ -- drop trigger estoque_prod_industrial
+	create trigger estoque_prod_industrial
+	on NF_COMPRA_PROD for insert
+	as
+	update Produto
+	set qntestoque = qntestoque + (select quantidade from inserted)
+	where codproduto = (select codproduto from inserted)
+	if @@ROWCOUNT = 0
+		rollback transaction
