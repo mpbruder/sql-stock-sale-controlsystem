@@ -160,6 +160,32 @@
 					rollback transaction
 	end
 
+ -- drop trigger exclusaofatura
+	create trigger exclusaofatura
+	on Fatura_paga for update
+	as
+	if update (forma_pgto)
+	declare @var int
+	set @var = (select tipo from inserted)
+	if @var = 0
+	begin
+		delete from Fatura_Venda
+		where numfatura = (select numfatura from inserted)
+	end
+	if @var = 1
+	begin
+		delete from Fatura_Compraprod
+		where numfatura = (select numfatura from inserted)
+	end
+	if @var = 2
+	begin 
+		delete from Fatura_Comprainsumo
+		where numfatura = (select numfatura from inserted)
+	end
+	delete from Fatura
+	where numfatura = (select numfatura from inserted)
+
+
  -- drop trigger estoque_insumo
 	create trigger estoque_insumo
 	on NF_COMPRA_INSUMO for insert

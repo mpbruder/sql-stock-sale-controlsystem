@@ -151,7 +151,7 @@ begin transaction
 create procedure cadastro_prod_fabricado
 @codproduto numeric(12,0),
 @codinsumo numeric(12,0),
-@quantidade int,
+@quantidade_insumo int,
 @nome varchar(50),
 @preco money,
 @qntestoque int,
@@ -167,7 +167,7 @@ begin transaction
 			if @@ROWCOUNT > 0
 			begin
 				insert into insumoproduto
-				values(@codproduto, @codinsumo, @quantidade)
+				values(@codproduto, @codinsumo, @quantidade_insumo)
 				if @@ROWCOUNT > 0
 				begin
 					commit transaction
@@ -384,7 +384,7 @@ else
 
 
 /* Realizar pagamento */
-create procedure realizar_pagamento
+create procedure pagar_fatura
 @numfatura numeric(12,0),
 @forma_pgto varchar(20)
 as
@@ -502,6 +502,13 @@ begin transaction
 				return 0
 			end
 
+/* Verificar Promocao */
+create procedure verificar_promocao
+@codprod numeric(12,0)
+as
+begin transaction
+
+
 -- *********************************************************************************
 -- SCRIPT: Manipulacao Database - EXEC's
 -- *********************************************************************************
@@ -528,57 +535,55 @@ begin transaction
 
 	-- EXECUCAO compra_insumo
 	declare @ret int
-	exec @ret = compra_insumo 3, 'Farinha de Trigo', 2, '10.00', '2019-10-29', '2020-03-29', 1, 1
-	print @ret
-
-	-- EXECUCAO cadastro_prod_fabricado
-	declare @ret int
-	exec @ret = cadastro_prod_fabricado 1, 'Coxinha de frango', '2.5', 500, '2019-11-12'
-	print @ret
-
-	-- EXECUCAO compra_produto_industrial
-	declare @ret int
-	exec @ret = compra_produto_industrial 1, 'Pepsi', 100, '2.5', '2019-07-03', '2019-09-03', 1, 3
-	print @ret
-
-	-- EXECUCAO cadastrar_promoproduto
-	declare @ret int
-	exec @ret = cadastrar_promoproduto 1, '2019-11-12', '2019-12-15', 1, 1 
-	print @ret
-	
-	-- EXECUCAO venda = Criar NF
-	declare @ret int
-	exec @ret = venda 1, 1, 1, 2, 3
-	print @ret
-
-	-- EXECUCAO finalizar_venda = Gerar Fatura com dtpagamento NULL
-	declare @ret int
-	exec @ret = finalizar_venda 1, 1
-	print @ret
-
-	-- EXECUCAO fatura_compra_prod
-	declare @ret int
-	exec @ret = fatura_compra_prod 1, 1
+	exec @ret = compra_insumo 1, 'Farinha de Trigo', 10, '3.5', '2019-10-29', '2020-03-29', 1, 1
 	print @ret
 
 	-- EXECUCAO fatura_compra_insumo
 	declare @ret int
-	exec @ret = fatura_compra_insumo 3, 2   
+	exec @ret = fatura_compra_insumo 1, 1   
 	print @ret
 
-	-- EXECUCAO realizar_pagamento
+	-- EXECUCAO cadastro_prod_fabricado
 	declare @ret int
-	exec @ret = realizar_pagamento 2, 'Débito'
+	exec @ret = cadastro_prod_fabricado 1, 1, 5, 'Coxinha de frango', '15', 500, '2019-11-12'
+	print @ret
+
+	-- EXECUCAO compra_produto_industrial
+	declare @ret int
+	exec @ret = compra_produto_industrial 2, 'Pepsi', 100, '2.5', '2019-07-03', '2019-09-03', 1, 1
+	print @ret
+
+	-- EXECUCAO fatura_compra_prod
+	declare @ret int
+	exec @ret = fatura_compra_prod 1, 2
+	print @ret
+
+	-- EXECUCAO cadastrar_promoproduto
+	declare @ret int
+	exec @ret = cadastrar_promoproduto 1, '2019-11-12', '2019-12-15', 1, 3 
+	print @ret
+	
+	-- EXECUCAO venda = Criar NF
+	declare @ret int
+	exec @ret = venda 1, 1, 2, 2, 3
+	print @ret
+
+	-- EXECUCAO finalizar_venda = Gerar Fatura com dtpagamento NULL
+	declare @ret int
+	exec @ret = finalizar_venda 1, 3
+	print @ret
+
+	-- EXECUCAO pagar_fatura
+	declare @ret int
+	exec @ret = pagar_fatura 3, 'Crédito'
 	print @ret
 
 
-
-		select * from NF_COMPRA_INSUMO
-		select * from NF_COMPRA_prod
+		select * from produto
+		select * from NF_VENDA
 
 		select * from Fatura
 		select * from Fatura_paga
-		select * from Fatura_Venda
 		
 		select * from Pessoa
 		select * from Pessoa_Fisica
